@@ -7,7 +7,7 @@ export default class IntersectedPlane {
         this.height = 45;
         this.segments = 1;
         this.color = 0xffffff
-        this.opacity = 0.1;
+        this.opacity = 0.0;
         this.rotation = Math.PI / 2;
     }
     init() {
@@ -15,7 +15,7 @@ export default class IntersectedPlane {
         let planeMaterial = new THREE.MeshBasicMaterial({
             color: this.color,
             side: THREE.DoubleSide,
-            visible: true,
+            visible: false,
             transparent: true,
             opacity: this.opacity
         });

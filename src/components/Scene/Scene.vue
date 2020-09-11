@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { TweenMax } from 'gsap';
 import * as dat from 'dat.gui';
-//import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 //import AtomGroup from "@/partials/AtomGroup/AtomGroup";
 import ParticlesOrbit from '@/partials/ParticlesOrbit/ParticlesOrbit';
 import Electron from '@/partials/Electron/Electron';
@@ -36,8 +36,8 @@ export default {
                 {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.15 , 0, -0.1),
-                    particlesCount: 1500,
+                    rotation: new THREE.Vector3(0.15 , 0, 0),
+                    particlesCount: 5000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
@@ -45,7 +45,7 @@ export default {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2 , 0, 0.6),
-                    particlesCount: 1500,
+                    particlesCount: 5000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
@@ -53,46 +53,46 @@ export default {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2, 0, -0.6),
-                    particlesCount: 1500,
+                    particlesCount: 5000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
-                {
-                    radius: 8,
-                    position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.21, 0.38374413426506115, 0.48707220753312597),
-                    particlesCount: 1500,
-                    size: Math.random() * 0.2,
-                    seed: 0.25
-                },
-                {
-                    radius: 12,
-                    position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.45, 0, -1),
-                    particlesCount: 1500,
-                    size: Math.random() * 0.2,
-                    seed: 0.25
-                },
+                // {
+                //     radius: 8,
+                //     position: new THREE.Vector3(0, 0, 0),
+                //     rotation: new THREE.Vector3(0.21, 0.38374413426506115, 0.48707220753312597),
+                //     particlesCount: 1500,
+                //     size: Math.random() * 0.2,
+                //     seed: 0.25
+                // },
+                // {
+                //     radius: 12,
+                //     position: new THREE.Vector3(0, 0, 0),
+                //     rotation: new THREE.Vector3(0.45, 0, -1),
+                //     particlesCount: 1500,
+                //     size: Math.random() * 0.2,
+                //     seed: 0.25
+                // },
             ],
             orbit: null,
             electrons: [
                 {
-                    position: new THREE.Vector3(-10, 6.5, 1.5),
+                    position: new THREE.Vector3(-10, 6.5, 2),
                 },
                 {
-                    position: new THREE.Vector3(-12, 1, 0.9),
+                    position: new THREE.Vector3(-12, 0, 0),
                 },
                 {
-                    position: new THREE.Vector3(-9.4, -7.2, 2),
+                    position: new THREE.Vector3(-9.5, -7.2, 2),
                 },
                 {
-                    position: new THREE.Vector3(10, 6.5, 1.5),
+                    position: new THREE.Vector3(10, 6.5, 2),
                 },
                 {
-                    position: new THREE.Vector3(12, -1.25, 0.9),
+                    position: new THREE.Vector3(12, 0, 0),
                 },
                 {
-                    position: new THREE.Vector3(9.4, -7.2, 2),
+                    position: new THREE.Vector3(9.5, -7.2, 2),
                 }
             ],
             intersectedElectrons: [],
@@ -101,22 +101,22 @@ export default {
             vector: new THREE.Vector3(0, 0, 0),
             vectors: [
                 {
-                    vector: new THREE.Vector3(-4, 3, 23)
+                    vector: new THREE.Vector3(-3, 3, 24)
                 },
                 {
-                    vector: new THREE.Vector3(-4, 1, 23)
+                    vector: new THREE.Vector3(-4, 1, 24)
                 },
                 {
-                    vector: new THREE.Vector3(-4, -3.2, 23)
+                    vector: new THREE.Vector3(-3, -3.5, 24)
                 },
                 {
-                    vector: new THREE.Vector3(4, 3, 23)
+                    vector: new THREE.Vector3(2.5, 3.5, 24)
                 },
                 {
-                    vector: new THREE.Vector3(4, 1, 23)
+                    vector: new THREE.Vector3(4, 1, 24)
                 },
                 {
-                    vector: new THREE.Vector3(4, -3.2, 23)
+                    vector: new THREE.Vector3(3, -3.5, 24)
                 },
                 {
                     vector: new THREE.Vector3(0, 1, 30)
@@ -149,10 +149,10 @@ export default {
         },
         createCamera() {
             this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
-            this.camera.position.set( 0, 1, 30 );
+            this.camera.position.set( 0, 0, 30 );
             // this.camera.lookAt(-15.75, 11.2, 5);
-            let helper = new THREE.CameraHelper( this.camera );
-            this.scene.add( helper );
+            // let helper = new THREE.CameraHelper( this.camera );
+            // this.scene.add( helper );
 
             console.log(this.camera);
         },
@@ -166,7 +166,7 @@ export default {
             this.controls.dampingFactor = 0.5;
         },
         createLights() {
-            let spotLight = new THREE.SpotLight( 0xffffff, 1 );
+            let spotLight = new THREE.SpotLight( 0xffffff, 2 );
             spotLight.position.set( 0, 50, 0 );
             spotLight.angle = Math.PI / 4;
             spotLight.penumbra = 0.05;
@@ -178,7 +178,11 @@ export default {
             spotLight.shadow.mapSize.height = 1024;
             spotLight.shadow.camera.near = 10;
             spotLight.shadow.camera.far = 200;
-            this.scene.add( spotLight );
+            this.scene.add(spotLight);
+
+            let directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+            directionalLight.position.set(0, 0, 10);
+            this.scene.add(directionalLight);
         },
         createRenderer() {
             this.renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -187,43 +191,41 @@ export default {
             this.container.appendChild( this.renderer.domElement );
         },
         createObject() {
-            // const loader = new GLTFLoader();
-            // loader.load(
-            //     'models/atom/scene.gltf',
-            //     ( gltf ) => {
-            //         // called when the resource is loaded
-            //         this.scene.add( gltf.scene );
-            //         console.log(gltf.scene);
-            //
-            //
-            //     },
-            //     ( xhr ) => {
-            //         // called while loading is progressing
-            //         console.log( `${( xhr.loaded / xhr.total * 100 )}% loaded` );
-            //     },
-            //     ( error ) => {
-            //         // called when loading has errors
-            //         console.error( 'An error happened', error );
-            //     },
-            // );
+            const loader = new GLTFLoader();
+            loader.load(
+                'models/particles/output_particles.glb',
+                ( gltf ) => {
+                    //console.log(gltf.scene);
+                    let particleGeometry = new THREE.BufferGeometry();
+                    particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
 
-            let sphereGeometry = new THREE.SphereGeometry( 1.5, 15, 15 );
-            let sphereMaterial = new THREE.MeshPhongMaterial(
-                {
-                    color: 0xC4BCD6,
-                    emissive: 0x6F8FB4,
-                    specular: 0x3F5E7D,
-                    shininess: 50
+                    let particleMaterial = new THREE.PointsMaterial(
+                        {
+                            size: 0.25,
+                            color: 0x025EA1, //0x93D6F4
+                            map: new THREE.TextureLoader().load('textures/disc.png'),
+                            transparent: true,
+                            alphaTest: 0.5
+                        }
+                    );
+                    //particleMaterial.color.setHSL( 1.0, 0.3, 0.7 );
+
+                    let particles = new THREE.Points( particleGeometry, particleMaterial );
+                    particles.scale.set(10, 10, 10);
+
+                    this.scene.add(particles);
                 }
             );
-            let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            sphere.index = 6;
+            loader.load(
+                'models/logo/logo.glb',
+                (gltf) => {
+                    //console.log(gltf);
+                    gltf.scene.rotation.x = Math.PI / 2;
+                    this.scene.add(gltf.scene);
+                }
+            );
 
-            this.intersectedElectrons.push(sphere);
-
-            this.scene.add(sphere);
-
-            //console.log('sphere', sphere);
+            //this.intersectedElectrons.push(sphere);
 
             this.orbits.forEach((item) => {
                 let orbitInstance = new ParticlesOrbit(item.radius, item.position, item.rotation, item.particlesCount, item.size, item.seed);
@@ -238,14 +240,12 @@ export default {
                 let electronInstance = new Electron(item.position, index);
                 let electron = electronInstance.init();
 
-                //console.log(electron);
+                console.log(electron);
 
                 this.intersectedElectrons.unshift(electron);
 
                 this.scene.add(electron);
             });
-
-
         },
         createSettings() {
             const gui = new dat.GUI();
@@ -275,13 +275,13 @@ export default {
             this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            let intersects = this.raycaster.intersectObjects(this.intersectedPlanes, true);
-
-            if (intersects.length > 0) {
-                // console.log(intersects[0].point);
-                // this.orbits[0].material.uniforms.mousePosition.value = intersects[0].point;
-            }
+            // this.raycaster.setFromCamera(this.mouse, this.camera);
+            // let intersects = this.raycaster.intersectObjects(this.intersectedPlanes, true);
+            //
+            // if (intersects.length > 0) {
+            //     // console.log(intersects[0].point);
+            //     // this.orbits[0].material.uniforms.mousePosition.value = intersects[0].point;
+            // }
         },
         mouseClickHandler(event) {
             this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;

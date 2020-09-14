@@ -5,12 +5,12 @@
 <script>
 import * as THREE from 'three';
 import { TweenMax } from 'gsap';
+import Draggable from 'gsap/Draggable'
+import ThrowPropsPlugin from '@/assets/js/gsap/bonus-files-for-npm-users/ThrowPropsPlugin'
 import * as dat from 'dat.gui';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-//import AtomGroup from "@/partials/AtomGroup/AtomGroup";
 import ParticlesOrbit from '@/partials/ParticlesOrbit/ParticlesOrbit';
 import Electron from '@/partials/Electron/Electron';
-//import IntersectedPlane from "@/partials/IntersectedPlane/IntersectedPlane";
 const OrbitControls = require('three-orbitcontrols');
 
 export default {
@@ -34,6 +34,7 @@ export default {
             },
             orbits: [
                 {
+                    context: null,
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.15 , 0, 0),
@@ -42,6 +43,7 @@ export default {
                     size: Math.random() * 0.2
                 },
                 {
+                    context: null,
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2 , 0, 0.6),
@@ -50,31 +52,17 @@ export default {
                     size: Math.random() * 0.2
                 },
                 {
+                    context: null,
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2, 0, -0.6),
                     particlesCount: 5000,
                     seed: 0.25,
                     size: Math.random() * 0.2
-                },
-                // {
-                //     radius: 8,
-                //     position: new THREE.Vector3(0, 0, 0),
-                //     rotation: new THREE.Vector3(0.21, 0.38374413426506115, 0.48707220753312597),
-                //     particlesCount: 1500,
-                //     size: Math.random() * 0.2,
-                //     seed: 0.25
-                // },
-                // {
-                //     radius: 12,
-                //     position: new THREE.Vector3(0, 0, 0),
-                //     rotation: new THREE.Vector3(0.45, 0, -1),
-                //     particlesCount: 1500,
-                //     size: Math.random() * 0.2,
-                //     seed: 0.25
-                // },
+                }
             ],
             orbit: null,
+            model: null,
             electrons: [
                 {
                     position: new THREE.Vector3(-10, 6.5, 2),
@@ -137,7 +125,8 @@ export default {
             this.createLights();
             this.createRenderer();
             this.createObject();
-            this.createSettings();
+            //this.createSettings();
+            this.createDraggable();
 
             this.renderer.setAnimationLoop(() => {
                 //this.update();
@@ -212,7 +201,7 @@ export default {
 
                     let particles = new THREE.Points( particleGeometry, particleMaterial );
                     particles.scale.set(10, 10, 10);
-
+                    this.model = particles;
                     this.scene.add(particles);
                 }
             );
@@ -228,12 +217,18 @@ export default {
             //this.intersectedElectrons.push(sphere);
 
             this.orbits.forEach((item) => {
-                let orbitInstance = new ParticlesOrbit(item.radius, item.position, item.rotation, item.particlesCount, item.size, item.seed);
+                let orbitInstance = new ParticlesOrbit(item.radius, item.position, new THREE.Vector3(), item.particlesCount, item.size, item.seed);
                 let orbit = orbitInstance.init();
 
                 //console.log(orbit);
 
-                this.scene.add(orbit);
+                item.context = orbit;
+
+                let group = new THREE.Group();
+                group.rotation.setFromVector3(item.rotation);
+                group.add(orbit);
+
+                this.scene.add(group);
             });
 
             this.electrons.forEach((item, index) => {
@@ -252,16 +247,53 @@ export default {
             gui.add(this.settings, 'x', -100, 100, 1);
             gui.add(this.settings, 'y', -100, 100, 1);
             gui.add(this.settings, 'z', -100, 100, 1);
-            // gui.add(this.el, 'x', -25, 25, 0.1 );
-            // gui.add(this.el, 'y', -25, 25, 0.1 );
-            // gui.add(this.el, 'z', -25, 25, 0.1 );
-            // console.log(gui);
+        },
+        createDraggable() {
+            const _this = this;
+            let scale = 0.005;
+            let lastX = 0;
+            let lastY = 0;
+            let meshX = 0;
+            let meshY = 0;
+
+            new Draggable(document.createElement("div"), {
+                onDrag: dragAction,
+                onThrowUpdate: dragAction,
+                trigger: this.renderer.domElement,
+                throwProps: true,
+                throwResistance: 10000
+            });
+
+            function dragAction() {
+
+                console.log('drag')
+                console.log(this)
+
+                let x = this.x;
+                let y = this.y;
+
+                let dx = x - lastX;
+                let dy = y - lastY;
+
+                lastX = x;
+                lastY = y;
+
+                meshX += dx;
+                meshY += dy;
+
+                _this.model.rotation.x = meshY * scale;
+                _this.model.rotation.y = meshX * scale;
+            }
         },
         update() {
             this.controls.update();
         },
         render() {
             this.renderer.render( this.scene, this.camera );
+
+            // this.orbits[0].context.rotation.y += 0.0025;
+            // this.orbits[1].context.rotation.y -= 0.0025;
+            // this.orbits[2].context.rotation.y -= 0.0025;
             // this.orbits[0].material.uniforms.time.value = Math.abs(Math.sin(performance.now() / 1000));
             // this.camera.position.set(this.settings.x, this.settings.y, this.settings.z);
             // this.intersectedElectrons[3].position.set(this.el.x, this.el.y, this.el.z);
@@ -387,6 +419,9 @@ export default {
     },
     mounted() {
         this.init();
+
+        console.log(ThrowPropsPlugin)
+        console.log(this.$refs.scene.children[0])
     }
 }
 </script>

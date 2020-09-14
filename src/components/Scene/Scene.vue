@@ -38,7 +38,7 @@ export default {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.15 , 0, 0),
-                    particlesCount: 5000,
+                    particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
@@ -47,7 +47,7 @@ export default {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2 , 0, 0.6),
-                    particlesCount: 5000,
+                    particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
@@ -56,7 +56,7 @@ export default {
                     radius: 12,
                     position: new THREE.Vector3(0, 0, 0),
                     rotation: new THREE.Vector3(0.2, 0, -0.6),
-                    particlesCount: 5000,
+                    particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 }
@@ -188,19 +188,85 @@ export default {
                     let particleGeometry = new THREE.BufferGeometry();
                     particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
 
-                    let particleMaterial = new THREE.PointsMaterial(
-                        {
-                            size: 0.25,
-                            color: 0x025EA1, //0x93D6F4
-                            map: new THREE.TextureLoader().load('textures/disc.png'),
-                            transparent: true,
-                            alphaTest: 0.5
+                    
+
+
+                    let particleMaterial = new THREE.ShaderMaterial(
+                    {
+                uniforms: {
+                    time: {
+                        type: 'f',
+                        value: 0
+                    },
+                    amplitude: {
+                        type: 'f',
+                        value: 0
+                    },
+                    color: {
+                        value: new THREE.Color( 0x6F8FB4 ) //#3F5E7D
+                    },
+                    mousePosition: {
+                        type: 'v3',
+                        value: new THREE.Vector3(100, 100, 100)
+                    }
+                },
+                vertexShader: `
+                    uniform float amplitude;
+                    uniform vec3 mousePosition;
+                    uniform float time;
+                            varying vec2 vUv;
+                    varying vec3 vPosition;
+                    attribute float scale;
+                            void main() {
+                        vUv = uv;
+                        vPosition = position;
+                        float distance = 1.0;
+                        float newScale = 0.00125* 100.;
+                                // if (length( mousePosition - position ) < distance ) {
+                        //     newScale = newScale * 2.0;
+                        // }
+                                vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+                                // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                                gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                                gl_Position = projectionMatrix * mvPosition;
+                    }
+               `,
+                fragmentShader: `
+                    uniform vec3 color;
+                    uniform vec3 mousePosition;
+                    varying vec3 vPosition;
+                    varying vec2 vUv;
+                            void main() {
+                        float distance = 1.0;
+                        vec3 newColor = color;
+                        vec3 color1 = vec3(0.1, 0.95, 0.95);
+                        vec3 color2 = vec3(0.5, 0.7, 0.9);
+                                if (length( mousePosition - vPosition ) < distance ) {
+                            newColor = vec3(1.0, 0.5, 0.25);
                         }
+                                if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
+                                gl_FragColor = vec4( newColor, 1.0 );
+                    }
+               `,
+                transparent: true
+                    }
                     );
+
+                    //let particleMaterial = new THREE.PointsMaterial(
+                    //    {
+                    //        size: 0.125,
+                    //        color: 0x025EA1, //0x93D6F4
+                    //        map: new THREE.TextureLoader().load('textures/disc.png'),
+                    //        transparent: true,
+                    //        alphaTest: 0.0
+                    //    }
+                    //);
                     //particleMaterial.color.setHSL( 1.0, 0.3, 0.7 );
 
+
+
                     let particles = new THREE.Points( particleGeometry, particleMaterial );
-                    particles.scale.set(10, 10, 10);
+                    particles.scale.set(5, 5, 5);
                     this.model = particles;
                     this.scene.add(particles);
                 }
@@ -250,7 +316,7 @@ export default {
         },
         createDraggable() {
             const _this = this;
-            let scale = 0.005;
+            let scale = 0.000035;
             let lastX = 0;
             let lastY = 0;
             let meshX = 0;
@@ -291,9 +357,9 @@ export default {
         render() {
             this.renderer.render( this.scene, this.camera );
 
-            // this.orbits[0].context.rotation.y += 0.0025;
-            // this.orbits[1].context.rotation.y -= 0.0025;
-            // this.orbits[2].context.rotation.y -= 0.0025;
+            this.orbits[0].context.rotation.y += 0.001;
+            this.orbits[1].context.rotation.y -= 0.001;
+            this.orbits[2].context.rotation.y -= 0.001;
             // this.orbits[0].material.uniforms.time.value = Math.abs(Math.sin(performance.now() / 1000));
             // this.camera.position.set(this.settings.x, this.settings.y, this.settings.z);
             // this.intersectedElectrons[3].position.set(this.el.x, this.el.y, this.el.z);

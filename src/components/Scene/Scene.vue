@@ -158,11 +158,11 @@ export default {
             this.controls.dampingFactor = 0.5;
         },
         createLights() {
-            let spotLight = new THREE.SpotLight( 0xffffff, 2 );
+            let spotLight = new THREE.SpotLight( 0xffffff, 1.1 );
             spotLight.position.set( 0, 50, 0 );
             spotLight.angle = Math.PI / 4;
             spotLight.penumbra = 0.05;
-            spotLight.decay = 2;
+            spotLight.decay = 1;
             spotLight.distance = 200;
 
             spotLight.castShadow = true;
@@ -172,7 +172,7 @@ export default {
             spotLight.shadow.camera.far = 200;
             this.scene.add(spotLight);
 
-            let directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+            let directionalLight = new THREE.DirectionalLight( 0xffffff, 1.01 );
             directionalLight.position.set(0, 0, 10);
             this.scene.add(directionalLight);
         },
@@ -184,6 +184,9 @@ export default {
         },
         createObject() {
             const loader = new GLTFLoader();
+            ///var sizes = new Array()
+            var sizes = [4,11,26]
+
             for (let i = 0; i < 3; i++) {
                 loader.load(
                     'models/particles/output_particles.glb',
@@ -228,7 +231,7 @@ export default {
                                         vPosition = position;
                                         vColor = customColor;
                                         float distance = 1.0;
-                                        float newScale = 0.00125* 100.;
+                                        float newScale = 0.2;
                                     
                                         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
                                         // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
@@ -275,7 +278,7 @@ export default {
 
 
                         let particles = new THREE.Points( particleGeometry, particleMaterial );
-                        particles.scale.set(i, i, i);
+                        particles.scale.set(sizes[i], sizes[i], sizes[i]);
                         this.models.push(particles);
                         this.scene.add(particles);
                     }
@@ -288,7 +291,7 @@ export default {
                     let logoMaterial = new THREE.MeshPhongMaterial(
                         {
                             color: 0xc4bcd6,
-                            emissive: 0xc4bcd6,
+                            emissive: 0x111111,
                             specular: 0xc4bcd6,
                             shininess: 50
                         }
@@ -296,6 +299,8 @@ export default {
                     console.log(gltf.scene);
                     gltf.scene.children[0].material = logoMaterial;
                     gltf.scene.rotation.x = Math.PI / 2;
+                    var logoscale = 1.5;
+                    gltf.scene.scale.set(logoscale, logoscale, logoscale);
                     this.scene.add(gltf.scene);
                 }
             );
@@ -381,11 +386,11 @@ export default {
             this.orbits[1].context.rotation.y -= 0.001;
             this.orbits[2].context.rotation.y -= 0.001;
 
-            // if (this.models.length > 0) {
-            //     this.models[0].rotation.y += 0.0001;
-            //     this.models[1].rotation.y += 0.0001;
-            //     this.models[2].rotation.y += 0.0001;
-            // }
+             if (this.models.length > 0) {
+                 this.models[0].rotation.y += 0.00005;
+                 this.models[1].rotation.y += 0.00005;
+                 this.models[2].rotation.y += 0.00005;
+             }
 
             // this.orbits[0].material.uniforms.time.value = Math.abs(Math.sin(performance.now() / 1000));
             // this.camera.position.set(this.settings.x, this.settings.y, this.settings.z);

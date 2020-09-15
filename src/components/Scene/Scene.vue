@@ -11,6 +11,7 @@ import Draggable from 'gsap/Draggable'
 import ThrowPropsPlugin from '@/assets/js/gsap/bonus-files-for-npm-users/ThrowPropsPlugin'
 import * as dat from 'dat.gui';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js';
 import ParticlesOrbit from '@/partials/ParticlesOrbit/ParticlesOrbit';
 import Electron from '@/partials/Electron/Electron';
 const OrbitControls = require('three-orbitcontrols');
@@ -24,6 +25,7 @@ export default {
             controls: null,
             scene: null,
             renderer: null,
+            start: null,
             settings: {
                 x: 0,
                 y: 1,
@@ -121,6 +123,7 @@ export default {
             this.scene.background = new THREE.TextureLoader().load('textures/bg.jpg');
             this.raycaster = new THREE.Raycaster();
             this.mouse = new THREE.Vector2();
+            this.start = Date.now();
 
             this.createCamera();
             //this.createControls();
@@ -157,11 +160,11 @@ export default {
             this.controls.dampingFactor = 0.5;
         },
         createLights() {
-            let spotLight = new THREE.SpotLight( 0xffffff, 2 );
+            let spotLight = new THREE.SpotLight( 0xffffff, 1.1 );
             spotLight.position.set( 0, 50, 0 );
             spotLight.angle = Math.PI / 4;
             spotLight.penumbra = 0.05;
-            spotLight.decay = 2;
+            spotLight.decay = 1;
             spotLight.distance = 200;
 
             spotLight.castShadow = true;
@@ -171,7 +174,7 @@ export default {
             spotLight.shadow.camera.far = 200;
             this.scene.add(spotLight);
 
-            let directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+            let directionalLight = new THREE.DirectionalLight( 0xffffff, 1.01 );
             directionalLight.position.set(0, 0, 10);
             this.scene.add(directionalLight);
         },
@@ -183,6 +186,9 @@ export default {
         },
         createObject() {
             const loader = new GLTFLoader();
+            ///var sizes = new Array()
+            var sizes = [4,11,26]
+
             for (let i = 0; i < 3; i++) {
                 loader.load(
                     'models/particles/output_particles.glb',
@@ -190,6 +196,7 @@ export default {
                         console.log(gltf.scene);
                         let particleGeometry = new THREE.BufferGeometry();
                         particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
+                        particleGeometry.setAttribute('normal', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.color.array, 3 ));
                         particleGeometry.setAttribute('customColor', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.color.array, 3 ));
 
                         let particleMaterial = new THREE.ShaderMaterial(
@@ -197,7 +204,7 @@ export default {
                                 uniforms: {
                                     time: {
                                         type: 'f',
-                                        value: 0
+                                        value: 0.0
                                     },
                                     amplitude: {
                                         type: 'f',
@@ -372,15 +379,15 @@ export default {
                                     return 2.2 * n_xyz;
                                     }
 
-                                    uniform float amplitude;
                                     uniform float time;
 
                                     varying vec2 vUv;
                                     varying vec3 vPosition;
                                     varying vec3 vColor;
                                     varying float noise;
-                                    attribute float scale;
+                                    varying vec3 vNormal;
                                     attribute vec3 customColor;
+                                   
 
                                     float turbulence( vec3 p ) {
                                     float w = 100.0;
@@ -393,32 +400,44 @@ export default {
                                     }
 
                                     void main() {
+
                                         vUv = uv;
                                         vPosition = position;
+                                        vNormal = normal;
                                         vColor = customColor;
+
                                         float newScale = 0.00125* 100.;
 
-                                        noise = 10.0 *  -.10 * turbulence( .5 * normal + time );
+                                        noise = 50.0 *  -.10 * turbulence( .5 * normal + time );
                                         float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
-                                        float displacement = - 10. * noise + b;
+                                        float displacement = - noise + b;
 
-                                        vec3 newPosition = position + normal * displacement;
-                                        // gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+                                        vec3 newPosition = position + normal * (displacement * 0.005);
 
-                                        vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
-                                        gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                                        gl_PointSize = 1.0;
+
+                                        //vec3 newPosition = vec3(position.x, position.y, position.z);
+                                        
+                                        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+                                        //gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+                                        // vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+
+                                        // gl_PointSize = newScale * ( 1.0 / - mvPosition.z );
                                      
-                                        gl_Position = projectionMatrix * mvPosition;
+                                        // gl_Position = projectionMatrix * mvPosition;
+
                                     }
                                 `,
                                 fragmentShader: `
-                                    uniform vec3 color;
+                                    uniform float time;
                                     varying vec3 vPosition;
                                     varying vec2 vUv;
                                     varying vec3 vColor;
+                                    varying vec3 vNormal;
                                     void main() {
                                        
-                                        if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
+                                        //if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
                                         gl_FragColor = vec4( vColor, 1.0 );
 
                                     }
@@ -442,9 +461,14 @@ export default {
 
 
                         let particles = new THREE.Points( particleGeometry, particleMaterial );
-                        particles.scale.set(i, i, i);
+                        particles.scale.set(sizes[i], sizes[i], sizes[i]);
                         this.models.push(particles);
                         console.log(this.models);
+                        var helper = new VertexNormalsHelper(particles, 0.25, 0x00ff00, 1 );
+
+                        console.log( helper);
+
+                        //this.scene.add(helper);
                         this.scene.add(particles);
                     }
                 );
@@ -456,7 +480,7 @@ export default {
                     let logoMaterial = new THREE.MeshPhongMaterial(
                         {
                             color: 0xc4bcd6,
-                            emissive: 0xc4bcd6,
+                            emissive: 0x111111,
                             specular: 0xc4bcd6,
                             shininess: 50
                         }
@@ -464,6 +488,8 @@ export default {
                     console.log(gltf.scene);
                     gltf.scene.children[0].material = logoMaterial;
                     gltf.scene.rotation.x = Math.PI / 2;
+                    var logoscale = 1.5;
+                    gltf.scene.scale.set(logoscale, logoscale, logoscale);
                     this.scene.add(gltf.scene);
                 }
             );
@@ -527,6 +553,8 @@ export default {
                 meshX += dx;
                 meshY += dy;
 
+                //console.log(meshX, meshY, scale);
+
                 _this.models[0].rotation.x = meshY * scale;
                 _this.models[0].rotation.y = meshX * scale;
 
@@ -549,13 +577,27 @@ export default {
             this.orbits[2].context.rotation.y -= 0.001;
 
             if (this.models.length > 0) {
-                this.models[0].rotation.y += 0.0001;
-                this.models[1].rotation.y += 0.0001;
-                this.models[2].rotation.y += 0.0001;
+                // this.models[0].rotation.y += 0.0001;
+                // this.models[1].rotation.y += 0.0001;
+                // this.models[2].rotation.y += 0.0001;
 
-                // this.models[0].material.uniforms.time = Math.abs(Math.sin(performance.now() / 10000));
-                // this.models[1].material.uniforms.time = Math.abs(Math.sin(performance.now() / 10000));
-                // this.models[2].material.uniforms.time = Math.abs(Math.sin(performance.now() / 10000));
+                this.models[0].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
+                this.models[1].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
+                this.models[2].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
+
+                //console.log(this.models[0].material);
+
+                //console.log(Math.abs(Math.sin(performance.now() * 0.01)));
+                // this.models[1].material.uniforms.time = Math.sin(performance.now() * 0.0000001);
+                // this.models[2].material.uniforms.time = Math.sin(performance.now() * 0.0000001);
+
+                // setInterval(() => {
+                    
+                // }, 500)
+                //this.models[0].material.uniforms.time += 0.0001;
+                // this.models[1].material.uniforms.time += 0.01;
+                // this.models[2].material.uniforms.time += 0.01;
+
 
                 // console.log(this.models[1].material.uniforms.time = Math.abs(Math.sin(performance.now() * 0.0000001)))
             }
@@ -589,51 +631,6 @@ export default {
             let intersects = this.raycaster.intersectObjects(this.intersectedElectrons, true);
 
             if (intersects.length > 0) {
-                // console.log(intersects[0].object.index);
-                //
-                // intersects[0].object.geometry.computeBoundingBox();
-                //
-                // let center = intersects[0].object.geometry.boundingSphere.center;
-                // let radius = intersects[0].object.geometry.boundingSphere.radius;
-                // let distance = center.distanceTo(this.camera.position) - radius;
-
-                //let height = intersects[0].object.geometry.
-
-                //console.log(distance);
-                // console.log(intersects[0].object.geometry.boundingBox);
-
-                // this.orbits[0].material.uniforms.mousePosition.value = intersects[0].point;
-
-                // this.camera.lookAt(-18, 8, 34);
-                //this.camera.lookAt(-15.75, 11.2, 5);
-                //console.log(this.camera.rotation);
-                // this.camera.zoom = 2;
-
-                //console.log(this.camera.lookAt);
-
-                // let realHeight = Math.abs(intersects[0].object.geometry.boundingBox.max.y - intersects[0].object.geometry.boundingBox.min.y);
-                //
-                // console.log(realHeight);
-                //
-                // let fov = 2 * Math.atan(realHeight * 25 / (2 * distance)) * (180 / Math.PI);
-                //
-                // // console.log(fov);
-                // //
-                // // this.camera.fov = fov;
-                // // this.camera.updateProjectionMatrix();
-
-
-                // TweenMax.to(this.camera, 1,
-                //     {
-                //         zoom: 1.5,
-                //         //ease: 'sine.inOut'
-                //         onUpdate: () => {
-                //             //console.log('update')
-                //             this.camera.updateProjectionMatrix();
-                //         }
-                //     }
-                // )
-
                 TweenMax.to(this.camera.position, 0.8,
                     {
                         x: this.vectors[intersects[0].object.index].vector.x,
@@ -646,40 +643,6 @@ export default {
                         }
                     }
                 )
-
-                // TweenMax.to(this.vector, 1,
-                //     {
-                //         x: intersects[0].object.position.x,
-                //         y: intersects[0].object.position.y,
-                //         z: intersects[0].object.position.z,
-                //         onStart: () => {
-                //             console.log('start');
-                //             console.log(this.vector);
-                //         },
-                //         onUpdate: () => {
-                //             this.camera.lookAt(this.vector.x, this.vector.y, this.vector.z);
-                //             this.camera.updateProjectionMatrix();
-                //             console.log(this.vector);
-                //         },
-                //         onComplete: () => {
-                //             console.log('end');
-                //             console.log(this.vector);
-                //         }
-                //     }
-                // )
-
-                // TweenMax.to(this.camera, 1,
-                //     {
-                //         zoom: 1.25,
-                //         //ease: 'sine.inOut'
-                //         onUpdate: () => {
-                //             //console.log('update')
-                //             //this.camera.updateProjectionMatrix();
-                //         }
-                //     }
-                // )
-
-                console.log(TweenMax);
             }
         }
     },

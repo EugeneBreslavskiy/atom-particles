@@ -55,7 +55,7 @@ export default class ParticlesOrbit {
                         vUv = uv;
                         vPosition = position;
                         float distance = 6.0;
-                        float newScale = scale* 1.;
+                        float newScale = scale* 3.;
                                 // if (length( mousePosition - position ) < distance ) {
                         //     newScale = newScale * 2.0;
                         // }

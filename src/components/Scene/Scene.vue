@@ -1,5 +1,8 @@
 <template>
-    <section class="scene" ref="scene"></section>
+    <section class="wapper">
+        <section class="scene" ref="scene"></section>
+        <div class="bg"></div>
+    </section>
 </template>
 
 <script>
@@ -62,7 +65,7 @@ export default {
                 }
             ],
             orbit: null,
-            model: null,
+            models: [],
             electrons: [
                 {
                     position: new THREE.Vector3(-10, 6.5, 2),
@@ -116,7 +119,7 @@ export default {
         init() {
             this.container = this.$refs.scene;
             this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color( 0x05041D );
+            this.scene.background = new THREE.TextureLoader().load('textures/bg.jpg');
             this.raycaster = new THREE.Raycaster();
             this.mouse = new THREE.Vector2();
 
@@ -128,7 +131,7 @@ export default {
             //this.createSettings();
             this.createDraggable();
 
-            this.renderer.setAnimationLoop(() => {
+            this.renderer.setAnimationLoop(() => { 
                 //this.update();
                 this.render();
             })
@@ -143,7 +146,7 @@ export default {
             // let helper = new THREE.CameraHelper( this.camera );
             // this.scene.add( helper );
 
-            console.log(this.camera);
+            //console.log(this.camera);
         },
         createControls() {
             this.controls = new OrbitControls( this.camera, this.container );
@@ -181,100 +184,117 @@ export default {
         },
         createObject() {
             const loader = new GLTFLoader();
-            loader.load(
-                'models/particles/output_particles.glb',
-                ( gltf ) => {
-                    //console.log(gltf.scene);
-                    let particleGeometry = new THREE.BufferGeometry();
-                    particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
+            for (let i = 0; i < 3; i++) {
+                loader.load(
+                    'models/particles/output_particles.glb',
+                    ( gltf ) => {
+                        //console.log(gltf.scene);
+                        let particleGeometry = new THREE.BufferGeometry();
+                        particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
+                        particleGeometry.setAttribute('customColor', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.color.array, 3 ));
 
-                    
+                        let particleMaterial = new THREE.ShaderMaterial(
+                            {
+                                uniforms: {
+                                    time: {
+                                        type: 'f',
+                                        value: 0
+                                    },
+                                    amplitude: {
+                                        type: 'f',
+                                        value: 0
+                                    },
+                                    color: {
+                                        value: new THREE.Color( 0x6F8FB4 ) //#3F5E7D
+                                    },
+                                    mousePosition: {
+                                        type: 'v3',
+                                        value: new THREE.Vector3(100, 100, 100)
+                                    }
+                                },
+                                vertexShader: `
+                                    uniform float amplitude;
+                                    uniform vec3 mousePosition;
+                                    uniform float time;
+
+                                    varying vec2 vUv;
+                                    varying vec3 vPosition;
+                                    varying vec3 vColor;
+                                    attribute float scale;
+                                    attribute vec3 customColor;
+
+                                    void main() {
+                                        vUv = uv;
+                                        vPosition = position;
+                                        vColor = customColor;
+                                        float distance = 1.0;
+                                        float newScale = 0.00125* 100.;
+                                    
+                                        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+                                        // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                                        gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                                        gl_Position = projectionMatrix * mvPosition;
+                                    }
+                            `,
+                                fragmentShader: `
+                                    uniform vec3 color;
+                                    uniform vec3 mousePosition;
+                                    varying vec3 vPosition;
+                                    varying vec2 vUv;
+                                    varying vec3 vColor;
+                                    void main() {
+                                        float distance = 1.0;
+                                        vec3 newColor = color;
+                                        vec3 color1 = vec3(0.1, 0.95, 0.95);
+                                        vec3 color2 = vec3(0.5, 0.7, 0.9);
+
+                                        if (length( mousePosition - vPosition ) < distance ) {
+                                            newColor = vec3(1.0, 0.5, 0.25);
+                                        }
+
+                                        if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
+                                        gl_FragColor = vec4( vColor, 1.0 );
+                                    }
+                            `,
+                                transparent: true
+                            }
+                        );
+
+                        //let particleMaterial = new THREE.PointsMaterial(
+                        //    {
+                        //        size: 0.125,
+                        //        color: 0x025EA1, //0x93D6F4
+                        //        map: new THREE.TextureLoader().load('textures/disc.png'),
+                        //        transparent: true,
+                        //        alphaTest: 0.0
+                        //    }
+                        //);
+                        //particleMaterial.color.setHSL( 1.0, 0.3, 0.7 );
+
+                        //console.log( gltf.scene.children[0].geometry.attributes);
 
 
-                    let particleMaterial = new THREE.ShaderMaterial(
-                    {
-                uniforms: {
-                    time: {
-                        type: 'f',
-                        value: 0
-                    },
-                    amplitude: {
-                        type: 'f',
-                        value: 0
-                    },
-                    color: {
-                        value: new THREE.Color( 0x6F8FB4 ) //#3F5E7D
-                    },
-                    mousePosition: {
-                        type: 'v3',
-                        value: new THREE.Vector3(100, 100, 100)
+                        let particles = new THREE.Points( particleGeometry, particleMaterial );
+                        particles.scale.set(i, i, i);
+                        this.models.push(particles);
+                        this.scene.add(particles);
                     }
-                },
-                vertexShader: `
-                    uniform float amplitude;
-                    uniform vec3 mousePosition;
-                    uniform float time;
-                            varying vec2 vUv;
-                    varying vec3 vPosition;
-                    attribute float scale;
-                            void main() {
-                        vUv = uv;
-                        vPosition = position;
-                        float distance = 1.0;
-                        float newScale = 0.00125* 100.;
-                                // if (length( mousePosition - position ) < distance ) {
-                        //     newScale = newScale * 2.0;
-                        // }
-                                vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-                                // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
-                                gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
-                                gl_Position = projectionMatrix * mvPosition;
-                    }
-               `,
-                fragmentShader: `
-                    uniform vec3 color;
-                    uniform vec3 mousePosition;
-                    varying vec3 vPosition;
-                    varying vec2 vUv;
-                            void main() {
-                        float distance = 1.0;
-                        vec3 newColor = color;
-                        vec3 color1 = vec3(0.1, 0.95, 0.95);
-                        vec3 color2 = vec3(0.5, 0.7, 0.9);
-                                if (length( mousePosition - vPosition ) < distance ) {
-                            newColor = vec3(1.0, 0.5, 0.25);
-                        }
-                                if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
-                                gl_FragColor = vec4( newColor, 1.0 );
-                    }
-               `,
-                transparent: true
-                    }
-                    );
-
-                    //let particleMaterial = new THREE.PointsMaterial(
-                    //    {
-                    //        size: 0.125,
-                    //        color: 0x025EA1, //0x93D6F4
-                    //        map: new THREE.TextureLoader().load('textures/disc.png'),
-                    //        transparent: true,
-                    //        alphaTest: 0.0
-                    //    }
-                    //);
-                    //particleMaterial.color.setHSL( 1.0, 0.3, 0.7 );
-
-
-
-                    let particles = new THREE.Points( particleGeometry, particleMaterial );
-                    particles.scale.set(5, 5, 5);
-                    this.model = particles;
-                    this.scene.add(particles);
-                }
-            );
+                );
+            }
+            
             loader.load(
                 'models/logo/logo.glb',
                 (gltf) => {
-                    //console.log(gltf);
+                    let logoMaterial = new THREE.MeshPhongMaterial(
+                        {
+                            color: 0xc4bcd6,
+                            emissive: 0xc4bcd6,
+                            specular: 0xc4bcd6,
+                            shininess: 50
+                        }
+                    );
+                    console.log(gltf.scene);
+                    gltf.scene.children[0].material = logoMaterial;
                     gltf.scene.rotation.x = Math.PI / 2;
                     this.scene.add(gltf.scene);
                 }
@@ -285,8 +305,6 @@ export default {
             this.orbits.forEach((item) => {
                 let orbitInstance = new ParticlesOrbit(item.radius, item.position, new THREE.Vector3(), item.particlesCount, item.size, item.seed);
                 let orbit = orbitInstance.init();
-
-                //console.log(orbit);
 
                 item.context = orbit;
 
@@ -300,8 +318,6 @@ export default {
             this.electrons.forEach((item, index) => {
                 let electronInstance = new Electron(item.position, index);
                 let electron = electronInstance.init();
-
-                console.log(electron);
 
                 this.intersectedElectrons.unshift(electron);
 
@@ -327,14 +343,10 @@ export default {
                 onThrowUpdate: dragAction,
                 trigger: this.renderer.domElement,
                 throwProps: true,
-                throwResistance: 10000
+                throwResistance: 1000
             });
 
             function dragAction() {
-
-                console.log('drag')
-                console.log(this)
-
                 let x = this.x;
                 let y = this.y;
 
@@ -347,8 +359,16 @@ export default {
                 meshX += dx;
                 meshY += dy;
 
-                _this.model.rotation.x = meshY * scale;
-                _this.model.rotation.y = meshX * scale;
+                _this.models[0].rotation.x = meshY * scale;
+                _this.models[0].rotation.y = meshX * scale;
+
+                _this.models[1].rotation.x = meshY * scale;
+                _this.models[1].rotation.y = meshX * scale;
+
+                _this.models[2].rotation.x = meshY * scale;
+                _this.models[2].rotation.y = meshX * scale;
+                
+               // console.log(_this.models);
             }
         },
         update() {
@@ -360,6 +380,13 @@ export default {
             this.orbits[0].context.rotation.y += 0.001;
             this.orbits[1].context.rotation.y -= 0.001;
             this.orbits[2].context.rotation.y -= 0.001;
+
+            // if (this.models.length > 0) {
+            //     this.models[0].rotation.y += 0.0001;
+            //     this.models[1].rotation.y += 0.0001;
+            //     this.models[2].rotation.y += 0.0001;
+            // }
+
             // this.orbits[0].material.uniforms.time.value = Math.abs(Math.sin(performance.now() / 1000));
             // this.camera.position.set(this.settings.x, this.settings.y, this.settings.z);
             // this.intersectedElectrons[3].position.set(this.el.x, this.el.y, this.el.z);
@@ -389,7 +416,7 @@ export default {
             let intersects = this.raycaster.intersectObjects(this.intersectedElectrons, true);
 
             if (intersects.length > 0) {
-                console.log(intersects[0].object.index);
+                // console.log(intersects[0].object.index);
                 //
                 // intersects[0].object.geometry.computeBoundingBox();
                 //
@@ -487,11 +514,29 @@ export default {
         this.init();
 
         console.log(ThrowPropsPlugin)
-        console.log(this.$refs.scene.children[0])
+        //console.log(this.$refs.scene.children[0])
     }
 }
 </script>
 
-<style lang="scss">
+<style>
+.scene {
+    opacity: 1;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+}
 
+.bg {
+    background-color: #fff;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -10;
+}
 </style>

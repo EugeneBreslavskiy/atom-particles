@@ -15,10 +15,10 @@ export default class ParticlesOrbit {
         for (let i = 0; i < this.count; i++) {
             let angle = (i / this.count) * (Math.PI * 2);
             let x = Math.cos(angle) * this.radius;
-            let y = Math.sin(angle) * (Math.random() - 0.5) * 1.0;
+            let y = Math.sin(this.seed) * (Math.random() - 0.5) * 1.0;
             let z = Math.sin(angle) * this.radius;
             vertices.push(x, y, z);
-            scales.push(Math.random() * this.size);
+            scales.push(this.size * 0.5);
         }
 
         let particleGeometry = new THREE.BufferGeometry();
@@ -48,21 +48,21 @@ export default class ParticlesOrbit {
                     uniform float amplitude;
                     uniform vec3 mousePosition;
                     uniform float time;
-                            varying vec2 vUv;
+
+                    varying vec2 vUv;
                     varying vec3 vPosition;
+
                     attribute float scale;
-                            void main() {
+
+                    void main() {
                         vUv = uv;
                         vPosition = position;
-                        float distance = 6.0;
                         float newScale = scale* 3.;
-                                // if (length( mousePosition - position ) < distance ) {
-                        //     newScale = newScale * 2.0;
-                        // }
-                                vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-                                // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
-                                gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
-                                gl_Position = projectionMatrix * mvPosition;
+                      
+                        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+                        // gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                        gl_PointSize = newScale * ( 300.0 / - mvPosition.z );
+                        gl_Position = projectionMatrix * mvPosition;
                     }
                `,
                 fragmentShader: `
@@ -70,16 +70,15 @@ export default class ParticlesOrbit {
                     uniform vec3 mousePosition;
                     varying vec3 vPosition;
                     varying vec2 vUv;
-                            void main() {
+
+                    void main() {
                         float distance = 2.0;
                         vec3 newColor = color;
                         vec3 color1 = vec3(0.1, 0.95, 0.95);
                         vec3 color2 = vec3(0.5, 0.7, 0.9);
-                                if (length( mousePosition - vPosition ) < distance ) {
-                            newColor = vec3(1.0, 0.5, 0.25);
-                        }
-                                if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
-                                gl_FragColor = vec4( newColor, 1.0 );
+                       
+                        if ( length( gl_PointCoord - vec2( 0.5, 0.5 ) ) > 0.475 ) discard;
+                        gl_FragColor = vec4( newColor, 1.0 );
                     }
                `,
                 transparent: true
@@ -97,6 +96,7 @@ export default class ParticlesOrbit {
         //);
 
         let particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.name = 'orbit';
         particles.position.set(0, 0, 0);
         particles.rotation.setFromVector3(this.rotation);
 

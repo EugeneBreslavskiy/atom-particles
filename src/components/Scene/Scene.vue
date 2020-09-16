@@ -1,6 +1,18 @@
 <template>
     <section class="wapper">
         <section class="scene" ref="scene"></section>
+        <ul class="content content__1">
+            <li>Умный город</li>
+            <li>Цифровые решения<br/>коммунальной инфраструктуры</li>
+            <li>Цифровые туристические<br/>сервисы</li>
+        </ul>
+        <ul class="content content__2">
+            <li>- Выстраивает диалог между муниципальной властью, населением и бизнесом</li>
+            <li>- Подготавливает муниципалитет к новым требованиям организации управления</li>
+            <li>- Повышает эффективность работы муниципальных служб</li>
+            <li>- Предоставляет каждому жителю возможность влиять на вопросы городского развития</li>
+            <li>- Повышает туристическую привлекательность города и региона</li>
+        </ul>
     </section>
 </template>
 
@@ -11,7 +23,6 @@ import Draggable from 'gsap/Draggable'
 import ThrowPropsPlugin from '@/assets/js/gsap/bonus-files-for-npm-users/ThrowPropsPlugin'
 import * as dat from 'dat.gui';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js';
 import ParticlesOrbit from '@/partials/ParticlesOrbit/ParticlesOrbit';
 import Electron from '@/partials/Electron/Electron';
 const OrbitControls = require('three-orbitcontrols');
@@ -39,27 +50,27 @@ export default {
             orbits: [
                 {
                     context: null,
-                    radius: 12,
+                    radius: 12.4,
                     position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.15 , 0, 0),
+                    rotation: new THREE.Vector3(0.2, 0, -0.12),
                     particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
                 {
                     context: null,
-                    radius: 12,
+                    radius: 12.4,
                     position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.2 , 0, 0.6),
+                    rotation: new THREE.Vector3(0.25 , 0, 0.52),
                     particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
                 },
                 {
                     context: null,
-                    radius: 12,
+                    radius: 12.4,
                     position: new THREE.Vector3(0, 0, 0),
-                    rotation: new THREE.Vector3(0.2, 0, -0.6),
+                    rotation: new THREE.Vector3(0.2, 0, -0.7),
                     particlesCount: 10000,
                     seed: 0.25,
                     size: Math.random() * 0.2
@@ -69,22 +80,42 @@ export default {
             models: [],
             electrons: [
                 {
-                    position: new THREE.Vector3(-10, 6.5, 2),
+                    position: new THREE.Vector3(-9.4, 7.7, 2.2),
                 },
                 {
-                    position: new THREE.Vector3(-12, 0, 0),
+                    position: new THREE.Vector3(-12.4, 1.2, 1),
                 },
                 {
-                    position: new THREE.Vector3(-9.5, -7.2, 2),
+                    position: new THREE.Vector3(-11, -6.3, -1.1),
                 },
                 {
-                    position: new THREE.Vector3(10, 6.5, 2),
+                    position: new THREE.Vector3(10.8, 6.4, -0.5),
                 },
                 {
-                    position: new THREE.Vector3(12, 0, 0),
+                    position: new THREE.Vector3(12.4, -1.6, 0),
                 },
                 {
-                    position: new THREE.Vector3(9.5, -7.2, 2),
+                    position: new THREE.Vector3(9.5, -8.2, 0),
+                }
+            ],
+            sprites: [
+                {
+                    position: new THREE.Vector3(0, 2, 0),
+                },
+                {
+                    position: new THREE.Vector3(0, 2, 0),
+                },
+                {
+                    position: new THREE.Vector3(0, 2, 0),
+                },
+                {
+                    position: new THREE.Vector3(0, 2, 0),
+                },
+                {
+                    position: new THREE.Vector3(0, 2, 0),
+                },
+                {
+                    position: new THREE.Vector3(0, 2, 0),
                 }
             ],
             intersectedElectrons: [],
@@ -93,25 +124,25 @@ export default {
             vector: new THREE.Vector3(0, 0, 0),
             vectors: [
                 {
-                    vector: new THREE.Vector3(-3, 3, 24)
+                    vector: new THREE.Vector3(-4, 5.7, 22) // 22 - old zoom
                 },
                 {
-                    vector: new THREE.Vector3(-4, 1, 24)
+                    vector: new THREE.Vector3(-12, 2.2, 22)
                 },
                 {
-                    vector: new THREE.Vector3(-3, -3.5, 24)
+                    vector: new THREE.Vector3(-5, -4.7, 22)
                 },
                 {
-                    vector: new THREE.Vector3(2.5, 3.5, 24)
+                    vector: new THREE.Vector3(4, 5.7, 22)
                 },
                 {
-                    vector: new THREE.Vector3(4, 1, 24)
+                    vector: new THREE.Vector3(12, -0.5, 22)
                 },
                 {
-                    vector: new THREE.Vector3(3, -3.5, 24)
+                    vector: new THREE.Vector3(4.6, -5.7, 22)
                 },
                 {
-                    vector: new THREE.Vector3(0, 1, 30)
+                    vector: new THREE.Vector3(0, 0, 30)
                 }
             ]
         }
@@ -147,8 +178,6 @@ export default {
             // this.camera.lookAt(-15.75, 11.2, 5);
             // let helper = new THREE.CameraHelper( this.camera );
             // this.scene.add( helper );
-
-            //console.log(this.camera);
         },
         createControls() {
             this.controls = new OrbitControls( this.camera, this.container );
@@ -186,14 +215,13 @@ export default {
         },
         createObject() {
             const loader = new GLTFLoader();
-            ///var sizes = new Array()
-            var sizes = [4,11,26]
+        
+            var sizes = [4, 11, 26];
 
             for (let i = 0; i < 3; i++) {
                 loader.load(
                     'models/particles/output_particles.glb',
                     ( gltf ) => {
-                        console.log(gltf.scene);
                         let particleGeometry = new THREE.BufferGeometry();
                         particleGeometry.setAttribute('position', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.position.array, 3 ));
                         particleGeometry.setAttribute('normal', new THREE.BufferAttribute( gltf.scene.children[0].geometry.attributes.color.array, 3 ));
@@ -446,29 +474,10 @@ export default {
                             }
                         );
 
-                        //let particleMaterial = new THREE.PointsMaterial(
-                        //    {
-                        //        size: 0.125,
-                        //        color: 0x025EA1, //0x93D6F4
-                        //        map: new THREE.TextureLoader().load('textures/disc.png'),
-                        //        transparent: true,
-                        //        alphaTest: 0.0
-                        //    }
-                        //);
-                        //particleMaterial.color.setHSL( 1.0, 0.3, 0.7 );
-
-                        //console.log( gltf.scene.children[0].geometry.attributes);
-
-
                         let particles = new THREE.Points( particleGeometry, particleMaterial );
                         particles.scale.set(sizes[i], sizes[i], sizes[i]);
                         this.models.push(particles);
-                        console.log(this.models);
-                        var helper = new VertexNormalsHelper(particles, 0.25, 0x00ff00, 1 );
-
-                        console.log( helper);
-
-                        //this.scene.add(helper);
+                    
                         this.scene.add(particles);
                     }
                 );
@@ -485,16 +494,12 @@ export default {
                             shininess: 50
                         }
                     );
-                    console.log(gltf.scene);
                     gltf.scene.children[0].material = logoMaterial;
                     gltf.scene.rotation.x = Math.PI / 2;
-                    var logoscale = 1.5;
-                    gltf.scene.scale.set(logoscale, logoscale, logoscale);
+                    gltf.scene.scale.set(1.65, 1.65, 1.65);
                     this.scene.add(gltf.scene);
                 }
             );
-
-            //this.intersectedElectrons.push(sphere);
 
             this.orbits.forEach((item) => {
                 let orbitInstance = new ParticlesOrbit(item.radius, item.position, new THREE.Vector3(), item.particlesCount, item.size, item.seed);
@@ -513,20 +518,66 @@ export default {
                 let electronInstance = new Electron(item.position, index);
                 let electron = electronInstance.init();
 
-                this.intersectedElectrons.unshift(electron);
+                let intersectGeometry = new THREE.SphereGeometry(1.5, 10, 10);
+                let intersectMaterial = new THREE.MeshBasicMaterial(
+                    {
+                        color: 0x00ff33,
+                        visible: false
+                    }
+                );
+                let intersect = new THREE.Mesh(intersectGeometry, intersectMaterial);
+                intersect.index = index
 
-                this.scene.add(electron);
+                this.intersectedElectrons.unshift(intersect);
+
+                
+
+                //this.intersectedElectrons.push(electron);
+
+                let spriteMap = new THREE.TextureLoader().load(`textures/text/sprite-${index+1}.png`);
+                let spriteMaterial = new THREE.SpriteMaterial({ map: spriteMap, depthWrite: false });
+                let sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(10, 2.5, 10);
+
+                sprite.position.x = this.sprites[index].position.x;
+                sprite.position.y = this.sprites[index].position.y;
+                sprite.position.z = this.sprites[index].position.z;
+
+                let group = new THREE.Group();
+                group.add(electron);
+                group.add(sprite);
+                group.add(intersect);
+                
+                group.position.x = this.electrons[index].position.x;
+                group.position.y = this.electrons[index].position.y;
+                group.position.z = this.electrons[index].position.z;
+                
+                this.scene.add(group);
+
+                // this.scene.add(sprite);
+
+                // this.scene.add(electron);
             });
+
+            let planeGeometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+            let planeMaterial = new THREE.MeshBasicMaterial( {color: 0x11ffaa, visible: false} );
+            let plane = new THREE.Mesh( planeGeometry, planeMaterial );
+            plane.index = 6;
+            plane.position.set(0, 0, -1);
+
+            this.intersectedElectrons.push(plane);
+
+            this.scene.add(plane);
         },
         createSettings() {
             const gui = new dat.GUI();
-            gui.add(this.settings, 'x', -100, 100, 1);
-            gui.add(this.settings, 'y', -100, 100, 1);
-            gui.add(this.settings, 'z', -100, 100, 1);
+            gui.add(this.settings, 'x', -30, 30, 0.1);
+            gui.add(this.settings, 'y', -30, 30, 0.1);
+            gui.add(this.settings, 'z', -30, 30, 0.1);
         },
         createDraggable() {
             const _this = this;
-            let scale = 0.000035;
+            let scale = 0.00035;
             let lastX = 0;
             let lastY = 0;
             let meshX = 0;
@@ -537,7 +588,7 @@ export default {
                 onThrowUpdate: dragAction,
                 trigger: this.renderer.domElement,
                 throwProps: true,
-                throwResistance: 1000
+                throwResistance: 0.1
             });
 
             function dragAction() {
@@ -553,8 +604,6 @@ export default {
                 meshX += dx;
                 meshY += dy;
 
-                //console.log(meshX, meshY, scale);
-
                 _this.models[0].rotation.x = meshY * scale;
                 _this.models[0].rotation.y = meshX * scale;
 
@@ -563,7 +612,6 @@ export default {
 
                 _this.models[2].rotation.x = meshY * scale;
                 _this.models[2].rotation.y = meshX * scale;
-                
             }
         },
         update() {
@@ -572,39 +620,23 @@ export default {
         render() {
             this.renderer.render( this.scene, this.camera );
 
+            // this.camera.position.x = this.settings.x;
+            // this.camera.position.y = this.settings.y;
+            // this.camera.position.z = this.settings.z;
+
             this.orbits[0].context.rotation.y += 0.001;
             this.orbits[1].context.rotation.y -= 0.001;
             this.orbits[2].context.rotation.y -= 0.001;
 
             if (this.models.length > 0) {
-                // this.models[0].rotation.y += 0.0001;
-                // this.models[1].rotation.y += 0.0001;
-                // this.models[2].rotation.y += 0.0001;
+                this.models[0].rotation.y += 0.0001;
+                this.models[1].rotation.y += 0.0001;
+                this.models[2].rotation.y += 0.0001;
 
                 this.models[0].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
                 this.models[1].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
                 this.models[2].material.uniforms.time.value = .0001 * ( Date.now() - this.start );
-
-                //console.log(this.models[0].material);
-
-                //console.log(Math.abs(Math.sin(performance.now() * 0.01)));
-                // this.models[1].material.uniforms.time = Math.sin(performance.now() * 0.0000001);
-                // this.models[2].material.uniforms.time = Math.sin(performance.now() * 0.0000001);
-
-                // setInterval(() => {
-                    
-                // }, 500)
-                //this.models[0].material.uniforms.time += 0.0001;
-                // this.models[1].material.uniforms.time += 0.01;
-                // this.models[2].material.uniforms.time += 0.01;
-
-
-                // console.log(this.models[1].material.uniforms.time = Math.abs(Math.sin(performance.now() * 0.0000001)))
             }
-
-            // this.orbits[0].material.uniforms.time.value = Math.abs(Math.sin(performance.now() / 1000));
-            // this.camera.position.set(this.settings.x, this.settings.y, this.settings.z);
-            // this.intersectedElectrons[3].position.set(this.el.x, this.el.y, this.el.z);
         },
         resizeWindowHandler() {
             this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -619,7 +651,6 @@ export default {
             // let intersects = this.raycaster.intersectObjects(this.intersectedPlanes, true);
             //
             // if (intersects.length > 0) {
-            //     // console.log(intersects[0].point);
             //     // this.orbits[0].material.uniforms.mousePosition.value = intersects[0].point;
             // }
         },
@@ -631,6 +662,8 @@ export default {
             let intersects = this.raycaster.intersectObjects(this.intersectedElectrons, true);
 
             if (intersects.length > 0) {
+                //console.log(intersects[0].object.index);
+
                 TweenMax.to(this.camera.position, 0.8,
                     {
                         x: this.vectors[intersects[0].object.index].vector.x,
@@ -638,20 +671,34 @@ export default {
                         z: this.vectors[intersects[0].object.index].vector.z,
                         ease: 'sine.inOut',
                         onUpdate: () => {
-                            //console.log('update')
                             //this.camera.updateProjectionMatrix();
+                        },
+                        onComplete: () => {
+
+                            if (intersects[0].object.index == 0 && intersects[0].object.index != 6) {
+                                console.log('animate')
+                                TweenMax.staggerTo(document.querySelectorAll('.content li'), 0.8, {
+                                    opacity: 1
+                                }, 0.1)
+                            }
+
+                            
                         }
                     }
                 )
+
+                if (intersects[0].object.index == 6 ) {
+                    TweenMax.staggerTo(document.querySelectorAll('.content li'), 0.1, {
+                        opacity: 0
+                    }, 0.05)
+                }
             }
         }
     },
     mounted() {
         this.init();
 
-        console.log(ThrowPropsPlugin)
-        //console.log(this.$refs.scene.children[0])
-        
+        console.log(ThrowPropsPlugin);
     }
 }
 </script>
@@ -659,11 +706,52 @@ export default {
 <style>
 .scene {
     opacity: 1;
-    position: absolute;
+    /* position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 5;
+    z-index: 5; */
+}
+
+.content {
+    list-style: none;
+    position: absolute;
+    top: 0;
+    z-index: 10;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.content li {
+    opacity: 0;
+}
+
+.content__1 {
+    top: 360px;
+    left: 240px;
+}
+
+.content__1 li {
+    text-align: right;
+}
+
+.content__2 {
+    left: 780px;
+    top: 170px;
+}
+
+.content__2 li {
+    text-align: left;
+}
+
+.content li {
+    margin: 15px 0;
+    font-size: 12px;
+    color: #fff;
+}
+
+canvas {
+    cursor: pointer !important;
 }
 </style>
